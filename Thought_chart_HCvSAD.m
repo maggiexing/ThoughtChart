@@ -6,28 +6,33 @@
 % Noted that Neutral is alway marked in green
 % maintain is in magenta and reappraise is in blue
 % script write in 05/29/2016 by Mengqi Xing
-
+tic;
+% init the gpu the first time, this may take some time if running for the
+% first time: Driver is compiling binaries for matlab if never done before
+% define the following in enviornment variables:
+% CUDA_CACHE_MAXSIZE 2147483648
+% CUDA_CACHE_DISABLE 0
+gpuDevice; 
 clear all
 %% loading and finding the foi average for 2 groups
 ConnectC={'1','6','9','13','15','17','19','22','35','39','42','43','44','47','49','51','52','53','54','57'};
 ConnectP={'1','2','6','8','17','21','23','30','37','40','50','118','124','127','138','140','143','149','153','167'};
 foi=5;%define the frequency of interest
 
+dataPath = 'F:\Data\Resting&ERT\';
 %control
 for i=1:length(ConnectC)
-    
-    
-    RestC=['WPLI_Reappraise_HC' ConnectC{i} '.mat'];
+    RestC=[dataPath 'WPLI_Reappraise_HC' ConnectC{i} '.mat'];
     R=cell2mat(struct2cell(load(RestC)));
     Alpha_R(:,:,:)=abs(mean(R(:,:,foi,1:130),3));
     ControlA_R{i}=Alpha_R;
     
-    RestC=['WPLI_Neutral_HC' ConnectC{i} '.mat'];
+    RestC=[dataPath 'WPLI_Neutral_HC' ConnectC{i} '.mat'];
     N=cell2mat(struct2cell(load(RestC)));
     Alpha_N(:,:,:)=abs(mean(N(:,:,foi,1:130),3));
     ControlA_N{i}=Alpha_N;
     
-    RestC=['WPLI_Maintain_HC' ConnectC{i} '.mat'];
+    RestC=[dataPath 'WPLI_Maintain_HC' ConnectC{i} '.mat'];
     M=cell2mat(struct2cell(load(RestC)));
     Alpha_M(:,:,:)=abs(mean(M(:,:,foi,1:130),3));
     ControlA_M{i}=Alpha_M;
@@ -35,19 +40,17 @@ end
 
 % disease
 for i=1:length(ConnectP)
-    
-    
-    RestP=['WPLI_Reappraise_DZ' ConnectP{i} '.mat'];
+    RestP=[dataPath 'WPLI_Reappraise_DZ' ConnectP{i} '.mat'];
     R=cell2mat(struct2cell(load(RestP)));
     Alpha_R(:,:,:)=mean(R(:,:,foi,1:130),3);
     DiseaseA_R{i}=Alpha_R;
     
-    RestP=['WPLI_Neutral_DZ' ConnectP{i} '.mat'];
+    RestP=[dataPath 'WPLI_Neutral_DZ' ConnectP{i} '.mat'];
     N=cell2mat(struct2cell(load(RestP)));
     Alpha_N(:,:,:)=mean(N(:,:,foi,1:130),3);
     DiseaseA_N{i}=Alpha_N;
     
-    RestP=['WPLI_Maintain_DZ' ConnectP{i} '.mat'];
+    RestP=[dataPath 'WPLI_Maintain_DZ' ConnectP{i} '.mat'];
     M=cell2mat(struct2cell(load(RestP)));
     Alpha_M(:,:,:)=mean(M(:,:,foi,1:130),3);
     DiseaseA_M{i}=Alpha_M;
@@ -55,78 +58,60 @@ end
 
 
 %% Load the data into one matrix
-SampleSizeHC= 20  ;
-SampleSizeDZ= 20  ;
+SampleSizeHC = 20;
+SampleSizeDZ = 20;
+NEEGPoints = 130;
+CnctDim = 34;
+NTests = 3;
 %control group
-
-
-for NSubj = 1: SampleSizeHC
-    temp = ControlA_N{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1)) = abs( temp(:, :,  i) ) ;
-    end
-    
-    temp = ControlA_M{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1) +2600) = abs( temp(:, :, i) ) ;
-    end
-    
-    temp = ControlA_R{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1)+5200) = abs( temp(:, :,  i) ) ;
-    end
+DyMatAll = zeros(CnctDim, CnctDim, NEEGPoints*(SampleSizeHC+SampleSizeDZ)*NTests);
+for subjId = 1: SampleSizeHC
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1)):(NEEGPoints*(subjId))) = abs(ControlA_N{1,subjId});  
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId)) + NEEGPoints*SampleSizeHC) = abs(ControlA_M{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 2*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 2*NEEGPoints*SampleSizeHC)) = abs(ControlA_R{1,subjId});
 end
 
 % Disease group
 
-for NSubj = 1: SampleSizeDZ
-    temp = DiseaseA_N{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1)+7800 ) = abs( temp(:, :,  i) ) ;
-    end
-    
-    temp = DiseaseA_M{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1)+10400 ) = abs( temp(:, :,  i) ) ;
-    end
-    
-    temp = DiseaseA_R{1,NSubj};
-    for i=1:130
-        DyMatAll(:,:, i+130*(NSubj-1)+13000) = abs( temp(:, :,  i) ) ;
-    end
+for subjId = 1: SampleSizeDZ
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 3*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 3*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_N{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 4*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 4*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_M{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 5*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 5*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_R{1,subjId});
 end
 
-%
 % clear diagnoal
-
-for i=1:40*3*130
-    for j=1:34
-        DyMatAll(j,j,i)=0;
-    end
+DyMatAll(1:NEEGPoints+1:end) = 0;
+dim=NTests*(SampleSizeHC+SampleSizeDZ)*NEEGPoints;
+%% Run dissimilarity here
+tic;
+DyMatAllGpu = gpuArray(DyMatAll);
+DyDistAllGpu = zeros(dim, dim, 'gpuArray');
+textprogressbar('Computing dissimilarity: ')
+for i=1:dim-1
+    textprogressbar(i/dim*100.0);
+    diff = (repmat(DyMatAllGpu(:,:,i),[1,1,dim]) - DyMatAllGpu).^2;
+    DyDistAllGpu(:,i) = sqrt(squeeze(sum(sum(diff))));
+%     diff = (repmat(DyMatAllGpu(:,:,i),[1,1,dim-i]) - DyMatAllGpu(:,:,i+1:end)).^2;
+%     DyDistAllGpu(i+1:end,i) = sqrt(squeeze(sum(sum(diff))));
 end
-dim=40*3*130;
-%% Run dissiilarity here
-DyDistAll=zeros(dim, dim);
-
-for i=1:dim
-    i
-    for j=(i+1): dim
-        diff = DyMatAll(:,:, i) -DyMatAll(:,:,j);
-        DyDistAll(i, j) = sqrt( sum( sum( diff.*diff ) ) );
-        DyDistAll(j, i) = DyDistAll(i,j);
-    end
-end
+DyDistAll = gather(DyDistAllGpu);
+% DyDistAll = DyDistAll + DyDistAll';
+textprogressbar('done')
+toc
+return
 %% Run NDR here
 Edim=10;
 
 n=30;
+tic;
 
-[IsomapXYZ dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
+[IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
+toc
+return
 load('conn_comp.mat');
 %
 IsomapAll=zeros(length(conn_comp),3);
 IsomapAll(conn_comp,:)=IsomapXYZ(:,2:4);
-m_size=2;
 
 %% plot output
 figure;

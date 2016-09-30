@@ -98,13 +98,13 @@ DyDistAll = gather(DyDistAllGpu);
 % DyDistAll = DyDistAll + DyDistAll';
 textprogressbar('done')
 toc
-return
+% free GPU memory
+clear DyMatAllGpu DyDistAllGpu diff
 %% Run NDR here
 Edim=10;
 
 n=30;
 tic;
-
 [IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
 toc
 return

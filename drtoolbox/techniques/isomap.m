@@ -29,9 +29,8 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     if ~exist('k', 'var')
         k = 12;
     end
-
     % Construct neighborhood graph
-    disp('Constructing neighborhood graph...'); 
+    disp('Constructing neighborhood graph...');
     D = real(find_nn(X, k));
     
     % Select largest connected component
@@ -45,24 +44,29 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     D = D(conn_comp, conn_comp);
     mapping.D = D;
     n = size(D, 1);
-
     % Compute shortest paths
     disp('Computing shortest paths...');
     D = dijkstra(D, 1:n);
     mapping.DD = D;
-    
     % Performing MDS using eigenvector implementation
     disp('Constructing low-dimensional embedding...');
     D = D .^ 2;
     M = -.5 .* (bsxfun(@minus, bsxfun(@minus, D, sum(D, 1)' ./ n), sum(D, 1) ./ n) + sum(D(:)) ./ (n .^ 2));
     M(isnan(M)) = 0;
     M(isinf(M)) = 0;
-    [vec, val] = eig(M);
-	if size(vec, 2) < no_dims
+    M = (M+M')/2;
+    tic;
+    if (~isempty(gpuDevice))
+        [vec, val] = eig(gpuArray(single(M)));
+        vec = gather(vec);
+        val = gather(val);
+    else
+        [vec, val] = eig(M);
+    end
+    if (size(vec, 2) < no_dims)
 		no_dims = size(vec, 2);
 		warning(['Target dimensionality reduced to ' num2str(no_dims) '...']);
-	end
-	
+    end
     % Computing final embedding
     [val, ind] = sort(real(diag(val)), 'descend'); 
     vec = vec(:,ind(1:no_dims));

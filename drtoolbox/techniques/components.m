@@ -28,9 +28,9 @@ function blocks = components(A)
 
     % Compute Dulmage-Mendelsohn permutation on A
     if ~all(diag(A)) 
-        [foo, p, bar, r] = dmperm(A | speye(size(A)));
+        [~, p, ~, r] = dmperm(A | speye(size(A)));
     else
-        [foo, p, bar, r] = dmperm(A);  
+        [~, p, ~, r] = dmperm(A);  
     end
 
     % Compute sizes and number of clusters

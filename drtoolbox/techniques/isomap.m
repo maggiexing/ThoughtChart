@@ -39,7 +39,7 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     for i=1:max(blocks)
         count(i) = length(find(blocks == i));
     end
-    [count, block_no] = max(count);
+    [~, block_no] = max(count);
     conn_comp = find(blocks == block_no);    
     D = D(conn_comp, conn_comp);
     mapping.D = D;

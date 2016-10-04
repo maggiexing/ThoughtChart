@@ -83,23 +83,9 @@ end
 DyMatAll(1:NEEGPoints+1:end) = 0;
 dim=NTests*(SampleSizeHC+SampleSizeDZ)*NEEGPoints;
 %% Run dissimilarity here
-tic;
-DyMatAllGpu = gpuArray(DyMatAll);
-DyDistAllGpu = zeros(dim, dim, 'gpuArray');
-textprogressbar('Computing dissimilarity: ')
-for i=1:dim-1
-    textprogressbar(i/dim*100.0);
-    diff = (repmat(DyMatAllGpu(:,:,i),[1,1,dim]) - DyMatAllGpu).^2;
-    DyDistAllGpu(:,i) = sqrt(squeeze(sum(sum(diff))));
-%     diff = (repmat(DyMatAllGpu(:,:,i),[1,1,dim-i]) - DyMatAllGpu(:,:,i+1:end)).^2;
-%     DyDistAllGpu(i+1:end,i) = sqrt(squeeze(sum(sum(diff))));
-end
-DyDistAll = gather(DyDistAllGpu);
-% DyDistAll = DyDistAll + DyDistAll';
-textprogressbar('done')
-toc
-% free GPU memory
-clear DyMatAllGpu DyDistAllGpu diff
+% compute Euclidean distance from each pair of connectomes
+DyDistAll = squareform(pdist(reshape(DyMatAll,[CnctDim*CnctDim,dim])'));
+return
 %% Run NDR here
 Edim=10;
 

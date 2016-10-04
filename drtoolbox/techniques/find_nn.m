@@ -1,4 +1,4 @@
-function [D, ni] = find_nn(X, k)
+function [Dout, ni] = find_nn(X, k)
 %FIND_NN Finds k nearest neigbors for all datapoints in the dataset
 %
 %	[D, ni] = find_nn(X, k)
@@ -55,7 +55,12 @@ function [D, ni] = find_nn(X, k)
             ni(batch_ind,:) = ind(:,2:k + 1);
         end
         D(D == 0) = 1e-9;
-%         D = sparse(repmat(1:n, [1 k])', ni(:), D(:), n, n);
-        D = sparse([repmat(1:n, [1 k])'; ni(:)], [ni(:); repmat(1:n, [1 k])'], [D(:); D(:)], n, n);
+        %         D = sparse(repmat(1:n, [1 k])', ni(:), D(:), n, n);
+        %         D = sparse([repmat(1:n, [1 k])'; ni(:)], [ni(:); repmat(1:n, [1 k])'], [D(:); D(:)], n, n);
+        % fix the sparse bug: doubling values for mutual nearest neighbor
+        % nodes
+        Dout = zeros(n,n);
+        idx = repmat(1:n, [1 k])';
+        Dout(sub2ind([n,n],idx,ni(:))) = D;
+        Dout(sub2ind([n,n],ni(:),idx)) = D;        
     end
-    

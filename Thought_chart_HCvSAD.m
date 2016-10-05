@@ -6,7 +6,7 @@
 % Noted that Neutral is alway marked in green
 % maintain is in magenta and reappraise is in blue
 % script write in 05/29/2016 by Mengqi Xing
-tic;
+
 % init the gpu the first time, this may take some time if running for the
 % first time: Driver is compiling binaries for matlab if never done before
 % define the following in enviornment variables:
@@ -85,7 +85,6 @@ dim=NTests*(SampleSizeHC+SampleSizeDZ)*NEEGPoints;
 %% Run dissimilarity here
 % compute Euclidean distance from each pair of connectomes
 DyDistAll = squareform(pdist(reshape(DyMatAll,[CnctDim*CnctDim,dim])'));
-return
 %% Run NDR here
 Edim=10;
 

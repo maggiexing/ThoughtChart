@@ -1,4 +1,4 @@
-function [Dout, ni] = find_nn(X, k)
+function [D, ni] = find_nn(X, k)
 %FIND_NN Finds k nearest neigbors for all datapoints in the dataset
 %
 %	[D, ni] = find_nn(X, k)
@@ -62,5 +62,6 @@ function [Dout, ni] = find_nn(X, k)
         Dout = zeros(n,n);
         idx = repmat(1:n, [1 k])';
         Dout(sub2ind([n,n],idx,ni(:))) = D;
-        Dout(sub2ind([n,n],ni(:),idx)) = D;        
+        Dout(sub2ind([n,n],ni(:),idx)) = D;
+        D = sparse(Dout);
     end

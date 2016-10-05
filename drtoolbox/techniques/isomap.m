@@ -55,7 +55,7 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     M(isnan(M)) = 0;
     M(isinf(M)) = 0;
     M = (M+M')/2;
-    dev = gpudevice;
+    dev = gpuDevice;
     useGpu = ~isempty(dev) && (dev.AvailableMemory > 5e9); % 5GB
     if (useGpu)
         [vec, val] = eig(gpuArray(single(M)));

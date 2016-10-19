@@ -1,7 +1,7 @@
 %% This is the code used for calculating the CDF for the Thought Chart
 
 %% change the threshold here
-threshold=-250:50:1600;
+threshold=-1900:50:300;
 
 N_HC=IsomapAll(1:2600,1);
 M_HC=IsomapAll(2601:5200,1);
@@ -73,17 +73,17 @@ end
 Total_RDZ(i)=count_RDZ/2600;
 end
 figure();
-plot(threshold,Total_NHC,'-g')
+plot(-threshold,-Total_NHC,'-g')
 hold on
-plot(threshold,Total_MHC,'-m')
+plot(-threshold,-Total_MHC,'-m')
 hold on
-plot(threshold,Total_RHC,'-b')
+plot(-threshold,-Total_RHC,'-b')
 hold on
-plot(threshold,Total_NDZ,'--g')
+plot(-threshold,-Total_NDZ,'--g')
 hold on
-plot(threshold,Total_MDZ,'--m')
+plot(-threshold,-Total_MDZ,'--m')
 hold on
-plot(threshold,Total_RDZ,'--b')
+plot(-threshold,-Total_RDZ,'--b')
 xlabel('Threshold')
 ylabel('Numbers of the points below the threshold')
 legend('Neutral HC','Maintain HC','Reappraise HC','Neutral DZ','Maintain DZ','Reappraise DZ')

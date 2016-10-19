@@ -14,10 +14,11 @@
 % CUDA_CACHE_DISABLE 0
 gpuDevice; 
 clear all
+tic;
 %% loading and finding the foi average for 2 groups
 ConnectC={'1','6','9','13','15','17','19','22','35','39','42','43','44','47','49','51','52','53','54','57'};
 ConnectP={'1','2','6','8','17','21','23','30','37','40','50','118','124','127','138','140','143','149','153','167'};
-foi=5;%define the frequency of interest
+foi=4:7;%define the frequency of interest
 
 dataPath = 'F:\Data\Resting&ERT\';
 %control
@@ -89,14 +90,13 @@ DyDistAll = squareform(pdist(reshape(DyMatAll,[CnctDim*CnctDim,dim])'));
 Edim=10;
 
 n=30;
-tic;
 [IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
 toc
 return
 load('conn_comp.mat');
-%
-IsomapAll=zeros(length(conn_comp),3);
-IsomapAll(conn_comp,:)=IsomapXYZ(:,2:4);
+%%
+IsomapAll=zeros(length(dumpAll.conn_comp),3);
+IsomapAll(dumpAll.conn_comp,:)=IsomapXYZ(:,1:3);
 
 %% plot output
 figure;
@@ -124,20 +124,20 @@ neuDZ=61:80;
 mainDZ=81:100;
 reappDZ=101:120;
 
-AllDist=reshape(DyDistAll,[120,130,15600]);
+AllDist = reshape(DyDistAll,[120,130,15600]);
 MeanTrack=zeros(6,15600);
 for i=1:6
-MeanTrack(i,:)=mean(AllDist(1+(i-1)*20:i*20,:,:),1);
+    MeanTrack(i,:) = mean(squeeze(mean(AllDist(1+(i-1)*20:i*20,:,:),1)),1);
 end
-
-OutOfSample_Mean= out_of_sample( MeanTrack, dumpAll);
+OutOfSample_Mean = out_of_sample( MeanTrack, dumpAll);
+%%
 line_style=['-o','-o','-o','-*','-*','-*',];
 line_size=4;
 for i=1:6
-plot3( OutOfSample_Mean(: ,1), OutOfSample_Mean(: ,2), OutOfSample_Mean(: ,3), line_style(i),'MarkerEdgeColor',marker_hue(i),'MarkerFaceColor',marker_hue(i),'MarkerSize',line_size);
-axis equal;
-grid on;
-hold on;
+    plot3( OutOfSample_Mean(: ,1), OutOfSample_Mean(: ,2), OutOfSample_Mean(: ,3), line_style(i),'MarkerEdgeColor',marker_hue(i),'MarkerFaceColor',marker_hue(i),'MarkerSize',line_size);
+    axis equal;
+    grid on;
+    hold on;
 end
 hold off
 

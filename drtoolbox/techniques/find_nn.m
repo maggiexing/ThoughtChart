@@ -55,8 +55,8 @@ function [D, ni] = find_nn(X, k)
             ni(batch_ind,:) = ind(:,2:k + 1);
         end
         D(D == 0) = 1e-9;
-        %         D = sparse(repmat(1:n, [1 k])', ni(:), D(:), n, n);
-        %         D = sparse([repmat(1:n, [1 k])'; ni(:)], [ni(:); repmat(1:n, [1 k])'], [D(:); D(:)], n, n);
+        % D = sparse(repmat(1:n, [1 k])', ni(:), D(:), n, n);
+        % D = sparse([repmat(1:n, [1 k])'; ni(:)], [ni(:); repmat(1:n, [1 k])'], [D(:); D(:)], n, n);
         % fix the sparse bug: doubling values for mutual nearest neighbor
         % nodes
         Dout = zeros(n,n);

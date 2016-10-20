@@ -52,7 +52,7 @@ function t_point = out_of_sample(point, mapping)
             t_point = t_point';            
             
         case 'Autoencoder'
-            [foo, t_point] = run_data_through_autoenc(mapping.network, point);
+            [~, t_point] = run_data_through_autoenc(mapping.network, point);
             
         case {'Isomap', 'LandmarkIsomap'}
             
@@ -72,13 +72,13 @@ function t_point = out_of_sample(point, mapping)
             % Process all points (notice that in this implementation 
             % out-of-sample points are not used as landmark points)
             points = point;
-            t_point = repmat(0, [size(point, 1) mapping.no_dims]);
+            t_point = zeros(size(point, 1), mapping.no_dims);
             for i=1:size(points, 1)
                 
                 % Compute distance of new sample to training points
                 point = points(i,:);
                 tD = L2_distance(point', mapping.X');
-                [tmp, ind] = sort(tD); 
+                [~, ind] = sort(tD); 
                 tD(ind(mapping.k + 2:end)) = 0;
                 tD = sparse(tD);
                 tD = dijkstra([0 tD; tD' mapping.D], 1);
@@ -99,11 +99,11 @@ function t_point = out_of_sample(point, mapping)
         case 'LLE'
             % Initialize some variables
             n = size(mapping.X, 1);
-            t_point = repmat(0, [size(point, 1) numel(mapping.val)]);
+            t_point = zeros(size(point, 1), numel(mapping.val));
             
             % Compute local Gram matrix
             D = (L2_distance(point', mapping.X') .^ 2);
-            [foo, ind] = sort(D, 2, 'ascend');
+            [~, ind] = sort(D, 2, 'ascend');
             for i=1:size(point, 1)
 
                 % Compute local Gram matrix
@@ -115,7 +115,7 @@ function t_point = out_of_sample(point, mapping)
                 W = sum(invC, 2) ./ sum(sum(invC));
 
                 % Compute kernel matrix
-                K = repmat(0, [n 1]);
+                K = zeros(n, 1);
                 K(ind(i, 2:mapping.k + 1)) = W;
 
                 % Compute embedded point
@@ -127,13 +127,13 @@ function t_point = out_of_sample(point, mapping)
             n = size(mapping.X, 1);
             
             % Compute embeddings
-            t_point = repmat(0, [size(point, 1) numel(mapping.val)]);
+            t_point = zeros(size(point, 1), numel(mapping.val));
             for i=1:size(point, 1)
                 
                 % Compute Gaussian kernel between test point and training points
                 K = (L2_distance(point(i,:)', mapping.X') .^ 2)';
                 K = K ./ mapping.max_dist;
-                [foo, ind] = sort(K, 'ascend');            
+                [~, ind] = sort(K, 'ascend');            
                 K(ind(mapping.k+1:end)) = 0;
                 K(K ~= 0) = exp(-K(K ~= 0) / (2 * mapping.sigma ^ 2));
 
@@ -159,7 +159,7 @@ function t_point = out_of_sample(point, mapping)
                 
                 % Identify nearest neighbors in distance matrix
                 dist = L2_distance(X(:,i), mapping.D);
-                [dist, ind] = sort(dist, 'ascend');
+                [~, ind] = sort(dist, 'ascend');
                 neighbors(:,i) = ind(2:mapping.k2 + 1);
                 
                 % Compute reconstruction weights
@@ -196,12 +196,12 @@ function t_point = out_of_sample(point, mapping)
                 n = size(mapping.X, 1);   
 
                 % Start with out-of-sample extension for Laplacian Eigenmaps
-                Y = repmat(0, [size(point, 1) size(mapping.vec, 2)]);
+                Y = zeros(size(point, 1), size(mapping.vec, 2));
                 for i=1:size(point, 1)
 
                     % Compute adjecency matrix between test point and training points
                     K = L2_distance(point(i,:)', mapping.X(mapping.conn_comp,:)')' .^ 2;
-                    [foo, ind] = sort(K, 'ascend');
+                    [~, ind] = sort(K, 'ascend');
                     K(ind(mapping.k + 1:end)) = 0;
                     K(ind(1:mapping.k)) = 1;
 

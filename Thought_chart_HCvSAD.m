@@ -64,28 +64,30 @@ SampleSizeDZ = 20;
 NEEGPoints = 130;
 CnctDim = 34;
 NTests = 3;
+NPointsHC = NEEGPoints*SampleSizeHC;
+NPointsDZ = NEEGPoints*SampleSizeDZ;
+TotalNPoints = (NPointsHC+NPointsDZ)*NTests;
 %control group
-DyMatAll = zeros(CnctDim, CnctDim, NEEGPoints*(SampleSizeHC+SampleSizeDZ)*NTests);
+DyMatAll = zeros(CnctDim, CnctDim, TotalNPoints);
 for subjId = 1: SampleSizeHC
     DyMatAll(:,:, (1+NEEGPoints*(subjId-1)):(NEEGPoints*(subjId))) = abs(ControlA_N{1,subjId});  
-    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId)) + NEEGPoints*SampleSizeHC) = abs(ControlA_M{1,subjId});
-    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 2*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 2*NEEGPoints*SampleSizeHC)) = abs(ControlA_R{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + NPointsHC):(NEEGPoints*(subjId)) + NPointsHC) = abs(ControlA_M{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 2*NPointsHC):(NEEGPoints*(subjId) + 2*NPointsHC)) = abs(ControlA_R{1,subjId});
 end
 
 % Disease group
 
 for subjId = 1: SampleSizeDZ
-    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 3*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 3*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_N{1,subjId});
-    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 4*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 4*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_M{1,subjId});
-    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 5*NEEGPoints*SampleSizeHC):(NEEGPoints*(subjId) + 5*NEEGPoints*SampleSizeHC)) = abs(DiseaseA_R{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 3*NPointsDZ):(NEEGPoints*(subjId) + 3*NPointsDZ)) = abs(DiseaseA_N{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 4*NPointsDZ):(NEEGPoints*(subjId) + 4*NPointsDZ)) = abs(DiseaseA_M{1,subjId});
+    DyMatAll(:,:, (1+NEEGPoints*(subjId-1) + 5*NPointsDZ):(NEEGPoints*(subjId) + 5*NPointsDZ)) = abs(DiseaseA_R{1,subjId});
 end
 
 % clear diagnoal
 DyMatAll(1:NEEGPoints+1:end) = 0;
-dim=NTests*(SampleSizeHC+SampleSizeDZ)*NEEGPoints;
 %% Run dissimilarity here
 % compute Euclidean distance from each pair of connectomes
-DyDistAll = squareform(pdist(reshape(DyMatAll,[CnctDim*CnctDim,dim])'));
+DyDistAll = squareform(pdist(reshape(DyMatAll,[CnctDim*CnctDim,TotalNPoints])'));
 %% Run NDR here
 Edim=10;
 
@@ -124,17 +126,24 @@ neuDZ=61:80;
 mainDZ=81:100;
 reappDZ=101:120;
 
-AllDist = reshape(DyDistAll,[120,130,15600]);
-MeanTrack=zeros(6,15600);
-for i=1:6
-    MeanTrack(i,:) = mean(squeeze(mean(AllDist(1+(i-1)*20:i*20,:,:),1)),1);
+AllDist = reshape(DyDistAll,[120,NEEGPoints,TotalNPoints]);
+MeanTrack=zeros(2*NTests,NEEGPoints,TotalNPoints);
+for i=1:(2*NTests)
+    MeanTrack(i,:,:) = squeeze(mean(AllDist(1+(i-1)*20:i*20,:,:),1));
 end
-OutOfSample_Mean = out_of_sample( MeanTrack, dumpAll);
+tic;
+OutOfSample_Mean = zeros(2*NTests,NEEGPoints,Edim);
+matlabpool('open','6');
+parfor i = 1:(2*NTests)
+    OutOfSample_Mean(i,:,:) = out_of_sample( squeeze(MeanTrack(1,:,:)), dumpAll);
+end
+matlabpool('close');
+toc
 %%
 line_style=['-o','-o','-o','-*','-*','-*',];
 line_size=4;
 for i=1:6
-    plot3( OutOfSample_Mean(: ,1), OutOfSample_Mean(: ,2), OutOfSample_Mean(: ,3), line_style(i),'MarkerEdgeColor',marker_hue(i),'MarkerFaceColor',marker_hue(i),'MarkerSize',line_size);
+    plot3( OutOfSample_Mean(i,: ,1), OutOfSample_Mean(i,: ,2), OutOfSample_Mean(i,: ,3), line_style(i),'MarkerEdgeColor',marker_hue(i),'MarkerFaceColor',marker_hue(i),'MarkerSize',line_size);
     axis equal;
     grid on;
     hold on;

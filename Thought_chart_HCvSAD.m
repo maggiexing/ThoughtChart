@@ -89,8 +89,8 @@ DyMatAll(1:NEEGPoints+1:end) = 0;
 % compute Euclidean distance from each pair of connectomes
 X = reshape(DyMatAll,[CnctDim*CnctDim,TotalNPoints]);
 D = sum(X .^ 2);
-DyDistAll2 = real(sqrt(bsxfun(@plus, D.', D) - (2 * (X.' * X))));
-DyDistAll2(1:length(DyDistAll2)+1:end) = 0;
+DyDistAll = real(sqrt(bsxfun(@plus, D.', D) - (2 * (X.' * X))));
+DyDistAll(1:length(DyDistAll)+1:end) = 0;
 clear X D % clear memory from large arrays
 %% Run NDR here
 Edim=10;

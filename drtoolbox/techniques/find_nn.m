@@ -56,8 +56,8 @@ function [D, ni] = find_nn(X, k, method)
                 ni = zeros(n, k);
                 for i=1:batch_size:n
                     batch_ind = i:min(i + batch_size - 1, n);
-                    DD = bsxfun(@plus, sum_X', bsxfun(@plus, sum_X(batch_ind), ...
-                                                           -2 * (X(batch_ind,:) * X')));
+                    DD = real(bsxfun(@plus, sum_X', bsxfun(@plus, sum_X(batch_ind), ...
+                                                           -2 * (X(batch_ind,:) * X'))));
                     [DD, ind] = sort(abs(DD), 2, 'ascend');
                     D(batch_ind,:) = sqrt(DD(:,2:k + 1));
                     ni(batch_ind,:) = ind(:,2:k + 1);
@@ -79,7 +79,7 @@ function [D, ni] = find_nn(X, k, method)
             DD = sum(X .^ 2);
             D = real(sqrt(bsxfun(@plus, DD.', DD) - (2 * (X.' * X))));
             D(1:size(X, 1)+1:end) = 0;
-            D(D > K) = 0;
+            D(D > k) = 0;
             if (nargout > 1)
                 max_k = max(sum(D>0, 2));
                 ni = zeros(size(X, 1), max_k);

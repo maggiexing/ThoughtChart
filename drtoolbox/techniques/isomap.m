@@ -31,7 +31,7 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     end
     % Construct neighborhood graph
     disp('Constructing neighborhood graph...');
-    D = real(find_nn(X, k));
+    D = find_nn(X, k);
     
     % Select largest connected component
     blocks = components(D)';

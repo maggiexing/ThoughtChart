@@ -51,17 +51,22 @@ function [D, ni] = find_nn(X, k, method)
                 % Compute distances in batches
                 n = size(X, 1);
                 sum_X = sum(X .^ 2, 2);
-                batch_size = round(2e7 ./ n);
-                D = zeros(n, k);
-                ni = zeros(n, k);
-                for i=1:batch_size:n
-                    batch_ind = i:min(i + batch_size - 1, n);
-                    DD = real(bsxfun(@plus, sum_X', bsxfun(@plus, sum_X(batch_ind), ...
-                                                           -2 * (X(batch_ind,:) * X'))));
-                    [DD, ind] = sort(abs(DD), 2, 'ascend');
-                    D(batch_ind,:) = sqrt(DD(:,2:k + 1));
-                    ni(batch_ind,:) = ind(:,2:k + 1);
-                end
+                %batch_size = round(2e7 ./ n);
+                %D = zeros(n, k);
+                %ni = zeros(n, k);
+                %for i=1:batch_size:n
+                %   batch_ind = i:min(i + batch_size - 1, n);
+                %   DD = real(bsxfun(@plus, sum_X', bsxfun(@plus, sum_X(batch_ind), ...
+                %                                          -2 * (X(batch_ind,:) * X'))));
+                %   [DD, ind] = sort(abs(DD), 2, 'ascend');
+                %   D(batch_ind,:) = sqrt(DD(:,2:k + 1));
+                %   ni(batch_ind,:) = ind(:,2:k + 1);
+                %end
+                D = real(sqrt(bsxfun(@plus, sum_X.', sum_X) - (2 * (X * X.'))));
+                D(1:n+1:end) = 0;
+                [D, ni] = sort(D, 2, 'ascend');
+                D = D(:,2:k+1);
+                ni = ni(:,2:k+1);
                 D(D == 0) = 1e-9;
                 % D = sparse(repmat(1:n, [1 k])', ni(:), D(:), n, n);
                 % D = sparse([repmat(1:n, [1 k])'; ni(:)], [ni(:); repmat(1:n, [1 k])'], [D(:); D(:)], n, n);
@@ -76,8 +81,8 @@ function [D, ni] = find_nn(X, k, method)
         case 'region'
             % Compute all distances: this is memory demanding but faster
             % than squareform(pdist(X))
-            DD = sum(X .^ 2);
-            D = real(sqrt(bsxfun(@plus, DD.', DD) - (2 * (X.' * X))));
+            DD = sum(X .^ 2, 2);
+            D = real(sqrt(bsxfun(@plus, DD.', DD) - (2 * (X * X.'))));
             D(1:size(X, 1)+1:end) = 0;
             D(D > k) = 0;
             if (nargout > 1)

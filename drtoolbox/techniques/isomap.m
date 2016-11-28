@@ -1,12 +1,14 @@
-function [mappedX, mapping] = isomap(X, no_dims, k)
+function [mappedX, mapping] = isomap(X, no_dims, k, nn_method)
 %ISOMAP Runs the Isomap algorithm
 %
-%   [mappedX, mapping] = isomap(X, no_dims, k); 
+%   [mappedX, mapping] = isomap(X, no_dims, k, nn_method); 
 %
 % The functions runs the Isomap algorithm on dataset X to reduce the
 % dimensionality of the dataset to no_dims. The number of neighbors used in
 % the compuations is set by k (default = 12). This implementation does not
 % use the Landmark-Isomap algorithm.
+% nn_method is the nearest neighbor method: region for epsilon NN and
+% neighbors for traditional NN (default).
 %
 % If the neighborhood graph that is constructed is not completely
 % connected, only the largest connected component is embedded. The indices
@@ -29,9 +31,16 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     if ~exist('k', 'var')
         k = 12;
     end
+    if ~exist('nn_method', 'var')  || ~ismember(nn_method,{'neighbors', 'region'})
+        nn_method = 'neighbors';
+    end
     % Construct neighborhood graph
-    disp('Constructing neighborhood graph...');
-    D = find_nn(X, k);
+    disp('Constructing neighborhood graph...');    
+    D = find_nn(X, k, nn_method);
+    % remove island nodes = outliers
+    outlier_idx = (sum(D) == 0);
+    D = D(~outlier_idx, ~outlier_idx);
+    X(outlier_idx, :) = [];
     
     % Select largest connected component
     blocks = components(D)';
@@ -40,7 +49,7 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
         count(i) = length(find(blocks == i));
     end
     [~, block_no] = max(count);
-    conn_comp = find(blocks == block_no);    
+    conn_comp = (blocks == block_no);    
     D = D(conn_comp, conn_comp);
     mapping.D = D;
     n = size(D, 1);
@@ -75,6 +84,7 @@ function [mappedX, mapping] = isomap(X, no_dims, k)
     mappedX = real(bsxfun(@times, vec, sqrt(val)'));
     
     % Store data for out-of-sample extension
+    mapping.outlier_idx = outlier_idx;
     mapping.conn_comp = conn_comp;
     mapping.k = k;
     mapping.X = X(conn_comp,:);

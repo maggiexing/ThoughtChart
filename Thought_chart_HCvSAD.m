@@ -94,35 +94,36 @@ DyDistAll(1:length(DyDistAll)+1:end) = 0;
 clear X D % clear memory from large arrays
 %% Run NDR here
 Edim=10;
-
 n=30;
-[IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
+epsilon = 28.6029; % at this value, 99.4% of the nodes have neighbors          
+[IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim, epsilon, 'region');
 toc
-return
-load('conn_comp.mat');
+% load('conn_comp.mat');
 %%
 IsomapAll=zeros(length(dumpAll.conn_comp),3);
 IsomapAll(dumpAll.conn_comp,:)=IsomapXYZ(:,1:3);
 
 %% plot output
 figure;
-label=zeros(6,2600);
-for k=1:6
-    label(k,:)=1+2600*(k-1):2600*k;
+n = 2*NTests;
+labels = cumsum([0, sum(reshape(full(~dumpAll.outlier_idx'), [TotalNPoints/n,n]))]);
+label = cell(n,1);
+for k=1:n
+    label{k} = (labels(k)+1):labels(k+1);
 end
 m_size=2;
 
 marker_hue=['g','m','b','g','m','b',];
 marker_style=['o','o','o','*','*','*',];
 for k=1:6
-    plot3(IsomapAll(label(k,:),1), IsomapAll(label(k,:),2), IsomapAll(label(k,:),3), marker_style(k),'MarkerEdgeColor',marker_hue(k),'MarkerFaceColor',marker_hue(k),'MarkerSize',m_size);
+    plot3(IsomapAll(label{k},1), IsomapAll(label{k},2), IsomapAll(label{k},3), marker_style(k),'MarkerEdgeColor',marker_hue(k),'MarkerFaceColor',marker_hue(k),'MarkerSize',m_size);
     
     grid on;
     
     axis equal;
     hold on
 end
-
+return
 %%  plot average track using the out of sample 
 mainHC=21:40;
 reappHC=41:60;
@@ -135,13 +136,14 @@ MeanTrack=zeros(2*NTests,NEEGPoints,TotalNPoints);
 for i=1:(2*NTests)
     MeanTrack(i,:,:) = squeeze(mean(AllDist(1+(i-1)*20:i*20,:,:),1));
 end
+%%
 tic;
 OutOfSample_Mean = zeros(2*NTests,NEEGPoints,Edim);
-matlabpool('open','6');
-parfor i = 1:(2*NTests)
+% matlabpool('open','6');
+for i = 1:(2*NTests)
     OutOfSample_Mean(i,:,:) = out_of_sample( squeeze(MeanTrack(1,:,:)), dumpAll);
 end
-matlabpool('close');
+% matlabpool('close');
 toc
 %%
 line_style=['-o','-o','-o','-*','-*','-*',];

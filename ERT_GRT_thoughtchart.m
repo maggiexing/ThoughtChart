@@ -20,7 +20,7 @@ ConnectC={'1','6','9','13','17','19','22','35','39','44','47','49','51','52','53
 ConnectP={'8','17','21','23','30','37','40','50','118','124','127','138','140','143','149','153','167'};
 foi=4:7;%define the frequency of interest
 
-dataPath = 'D:\EEG Study\34channelEEGconnectivity\WPLI matrix\Task Matrix for Thought Chart\Resting&ERT\';
+dataPath = 'F:\Data\Resting&ERT\';
 % control
 for i=1:length(ConnectC)
     RestC=[dataPath 'WPLI_Reappraise_HC' ConnectC{i} '.mat'];
@@ -80,9 +80,9 @@ end
 % % Load the data into one matrix
 SampleSizeHC = 17;
 SampleSizeDZ = 17;
-NEEGPoints1 = 130;
-NEEGPoints2 = 110;
-NEEGPoints3 = 70;
+NEEGPoints1 = 130; % ERT task
+NEEGPoints2 = 110; % GRT task - positive reward
+NEEGPoints3 = 70;  % GRT task - positive feedback
 CnctDim = 34;
 NTests = 3;
 NPointsHC = NEEGPoints1*SampleSizeHC;
@@ -140,13 +140,13 @@ clear X D % clear memory from large arrays
 Edim=10;
 %
 n=30;
-[IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n);
+[IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim, n);
 
-load('conn_comp.mat');
-% %%
+% load('conn_comp.mat');
+%%
 IsomapAll=zeros(length(dumpAll.conn_comp),3);
 IsomapAll(dumpAll.conn_comp,:)=IsomapXYZ(:,1:3);
-
+%%
 % %% plot output
 % figure;
 % label=zeros(3,2600);

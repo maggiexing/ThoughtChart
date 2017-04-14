@@ -144,8 +144,8 @@ n=30:20:210;
 for i=1:length(n)
 [IsomapXYZ, dumpAll]=compute_mapping(DyDistAll ,'Isomap', Edim,n(i));
 
-percent_outliers(i)=length(dumpAll.outlier_idx)/TotalNPoints;
-
+save(['IsomapXYZ' num2str(n(i))],'IsomapXYZ')
+save(['EigenVal' num2str(n(i))],'dumpAll.val')
 
 clear IsomapXYZ dumpAll
 end

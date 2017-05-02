@@ -173,8 +173,9 @@ function [mappedA, mapping] = compute_mapping(A, type, no_dims, varargin)
     switch type
         case 'Isomap'         
             % Compute Isomap mapping
-			if isempty(varargin), [mappedA, mapping] = isomap(A, no_dims, 12);
-            else [mappedA, mapping] = isomap(A, no_dims, varargin{1}); end
+			if isempty(varargin), [mappedA, mapping] = isomap(A, no_dims, 12, 'neighbors');
+            elseif length(varargin) == 1, [mappedA, mapping] = isomap(A, no_dims, varargin{1}, 'neighbors');
+            else [mappedA, mapping] = isomap(A, no_dims, varargin{1}, varargin{2}); end
             mapping.name = 'Isomap';
 			
 		case 'LandmarkIsomap'

@@ -1,10 +1,11 @@
-function d = L2_distance(a, b)
+function d = L2_distance(a, b, df)
 % L2_DISTANCE - computes Euclidean distance matrix
 %
-% E = L2_distance(A,B)
+% E = L2_distance(A,B,DF)
 %
 %    A - (DxM) matrix 
 %    B - (DxN) matrix
+%    DF - TRUE = forces diagonal to be zero
 % 
 % Returns:
 %    E - (MxN) Euclidean distances between vectors in A and B
@@ -52,6 +53,9 @@ function d = L2_distance(a, b)
     if nargin < 2
        error('Not enough input arguments');
     end
+    if nargin < 3
+       df = 0;
+    end    
     if size(a, 1) ~= size(b, 1)
         error('A and B should be of same dimensionality');
     end
@@ -71,3 +75,7 @@ function d = L2_distance(a, b)
     % Make sure result is real
     d = real(d);
 
+    % force 0 on the diagonal? 
+    if (df==1)
+      d(1:size(d,1)+1:end) = 0;
+    end

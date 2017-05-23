@@ -7,15 +7,15 @@ gpuDevice;
 val=0:1/9999:1;
 DyMat=zeros(34,34,length(val));
 for i=1:length(val)
-mat(1:34,1:34) = val(i);
-DyMat(:,:,i)=mat;
+    mat(1:34,1:34) = val(i);
+    DyMat(:,:,i)=mat;
 end
- %add noise
-DyMat=DyMat+normrnd(0.00001,0.0000025,34,34,length(val));
+%add noise
+DyMat=DyMat+normrnd(0.00001,0.0025,34,34,length(val));
 for j=1:34
     for k=1:34
-       DyMatAll(j,k,:)= DyMat(k,j,:);
-    DyMatAll(j,j,:)=0;
+        DyMatAll(j,k,:)= DyMat(k,j,:);
+        DyMatAll(j,j,:)=0;
     end
 end
 %% Load the data into one matrix
@@ -31,7 +31,7 @@ clear X D % clear memory from large arrays
 % Run NDR here
 Edim=10;
 
- [test, dumpAll]=compute_mapping(Space,'Isomap', 10,40);
+[test, dumpAll]=compute_mapping(Space,'Isomap', 10,40);
 figure;
 subplot(1,3,3)
 plot3(test(:,1), test(:,2), test(:,3), '.');
